@@ -5,6 +5,7 @@ import data
 reload(data)
 from data import *
 import pdb
+c:/Users/48944/finance/test_data.py
 
 bs.login()
 stock_300 = bs.query_hs300_stocks("2020-01-01").get_data()
@@ -15,14 +16,7 @@ t3 = "2022-11-01"
 
 sd = stock_dataset(stocks[:10], t1, t2)
 sd = stock_dataset(stocks, t1, t2)
-
-
 sd_test = stock_dataset(stocks, t2, t3)
-
-
-
-
-sd.ts.shape
 
 ss = sd.corr_inv@sd.ret_d
 v1 = pd.DataFrame(ss.iloc[:, 1:]. values * ss.iloc[:, : -1]. values, index=sd.stocks)
