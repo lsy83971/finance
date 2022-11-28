@@ -85,5 +85,27 @@ class stock_dataset:
         self.corr = corr
         self.corr_inv = corr_inv
         self.corr_inv_diag = pd.Series(np.diag(self.corr_inv), index=stocks)
+
+
+class stock_dataset:
+    def __init__(self, stocks, t1, t2):
+        res = get_stocks_d(stocks, t1, t2)
+        stocks = res["stocks"]
+        ts = res["ts"]
+        self.stocks = stocks
+        self.ts = ts
+        self.df_open = pd.DataFrame(res["data"][:, :, 1], columns=ts, index=stocks).astype(float)
+        self.df_close = pd.DataFrame(res["data"][:, :, 2], columns=ts, index=stocks).astype(float)
+        self.df_mask = pd.DataFrame(res["data"][:, :, 3], columns=ts, index=stocks).astype(bool)
+        self.ret_d = (self.df_close / self.df_open - 1)
+
+        cov = self.ret_d@self.ret_d.T
+        diag = np.diag(cov)**(1 / 2)
+        corr = (cov / diag).T / diag
+        corr_inv = pd.DataFrame(np.linalg.inv(corr), index=stocks, columns=stocks)
+
+        self.corr = corr
+        self.corr_inv = corr_inv
+        self.corr_inv_diag = pd.Series(np.diag(self.corr_inv), index=stocks)
         
 
