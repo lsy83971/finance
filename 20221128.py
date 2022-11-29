@@ -5,6 +5,10 @@ import math
 from sklearn.decomposition import PCA
 from sklearn.linear_model import LinearRegression, Lasso
 
+basic_info = pd.read_pickle("./stockdata/stocks_basic_info.pkl")
+cn_name = basic_info.set_index("code")["code_name"]
+
+
 class decomp_y:
     def __init__(self, alpha, y, x):
         self.ls = Lasso(alpha=alpha, fit_intercept=False)
@@ -18,8 +22,6 @@ class decomp_y:
         self.r1 = self.x@self.coef
         self.r2 = self.y - self.r1
         self.dcp_r = (self.r1 ** 2).sum() / (self.y ** 2).sum()
-
-
 
 def shift_ret(s):
     return s[1:]. values / s[: -1]. values- 1
@@ -220,10 +222,9 @@ close_df.columns = [i[: -4] for i in stock_files]
  
 # 1. 对比PCA hs300-fit/total-fit 得到主特征的有效性
 
-
 check_price(close_df.iloc[:, :200])
 sp = price_ts(close_df)
-sp = price_ts(close_df.iloc[:, :200])
+#sp = price_ts(close_df.iloc[:, :])
 ret = sp.ret()
 
 
@@ -233,8 +234,45 @@ for i, j in ret.gp1l("year", [2, 1]):
     pca0 = cls_pca(df0)
     pca1 = cls_pca(df1)
     print(np.diag(corr2(pca0.trans(df1), pca1.trans(df1))))
-    break
+    pca0.trans(df1).corr()
 
+
+corr2(pca0.trans(df1)[1], pca1.trans(df1)[0])
+corr2(pca0.trans(df1)[2], pca1.trans(df1)[0])
+
+
+
+def cn(s):
+    if isinstance(s, pd.DataFrame):
+        s = s.copy()
+        s["cn"] = pd.Series(s.index).apply(lambda x:cn_name.get(x)).values
+        return s
+    if isinstance(s, pd.Series):
+        s = pd.DataFrame(s)
+        s["cn"] = pd.Series(s.index).apply(lambda x:cn_name.get(x)).values
+        return s
+    raise
+
+
+cn(pca0.comp[1]).sort_values(1)
+cn(pca0.comp[0]).sort_values(0)
+
+cn(pca1.comp[1]).sort_values(1)
+cn(pca1.comp[0]).sort_values(0)
+
+pca0.comp.shape
+pca1.comp.shape
+
+
+
+#pca0.trans(df1)
+    
+for i, j in ret.gp1l("year", [1, 1]):
+    df0 = j[0]. proc1()
+    df1 = j[1]. proc1()
+    pca0 = cls_pca(df0)
+    pca1 = cls_pca(df1)
+    print(np.diag(corr2(pca0.trans(df1), pca1.trans(df1))))
 
 pca_dict = dict()
 ret_dict = dict()
@@ -256,13 +294,15 @@ for j1, i1 in enumerate(pca_dict.keys()):
         l2 = pca_dict[i2].trans(ret_dict[i2])
         annul_comp_corr[j1, j2] = np.diag(corr2(l1, l2))
 
-
 pd.DataFrame(annul_comp_corr[:, :, 0])
 pd.DataFrame(annul_comp_corr[:, :, 1])
 pd.DataFrame(annul_comp_corr[:, :, 2])
 pd.DataFrame(annul_comp_corr[:, :, 3])
 pd.DataFrame(annul_comp_corr[:, :, 4])
 pd.DataFrame(annul_comp_corr[:, :, 5])
+
+
+
 
 
 
