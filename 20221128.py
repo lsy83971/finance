@@ -222,13 +222,13 @@ close_df.columns = [i[: -4] for i in stock_files]
  
 # 1. 对比PCA hs300-fit/total-fit 得到主特征的有效性
 
-check_price(close_df.iloc[:, :200])
 sp = price_ts(close_df)
 #sp = price_ts(close_df.iloc[:, :])
 ret = sp.ret()
 
 
-for i, j in ret.gp1l("year", [2, 1]):
+for i, j in ret.gp1l("year", [4, 1]):
+    break
     df0 = j[0]. proc1()
     df1 = j[1]. proc1()
     pca0 = cls_pca(df0)
@@ -237,9 +237,43 @@ for i, j in ret.gp1l("year", [2, 1]):
     pca0.trans(df1).corr()
 
 
+
+
+sb = pca0.trans(df0)
+coef = (df0.T@sb / np.diag(sb.T@sb))
+
+
+i = 4
+gg = (coef.iloc[:, :i]@sb.T.iloc[:i, ]).T
+((df0 - gg)**2).mean().mean()
+(gg ** 2).mean().mean()
+
+
+i = 4
+sb1 = pca0.trans(df1).iloc[:, :i]
+idx = df1.columns & coef.index
+gg1 = (coef.iloc[:, :i].loc[idx]@sb1.T).T
+((df1[idx] - gg1)**2).mean().mean()
+(gg1 ** 2).mean().mean()
+
+
+idx_next_year = pca0.trans(df1)
+idx_next_year_std = idx_next_year / idx_next_year.std()
+idx_next_year_std
+
+g1 = corr2(idx_next_year_std.iloc[:, :2], df1).T
+g2 = pca0.corr.iloc[:, :2]
+
+g3 = (g1 - g2)
+g4 = g3.loc[~(g3.isnull().sum(axis=1) > 0)]
+g4.abs().mean()
+g2.abs().mean()
+
+
+
+
 corr2(pca0.trans(df1)[1], pca1.trans(df1)[0])
 corr2(pca0.trans(df1)[2], pca1.trans(df1)[0])
-
 
 
 def cn(s):
@@ -260,8 +294,6 @@ cn(pca0.comp[0]).sort_values(0)
 cn(pca1.comp[1]).sort_values(1)
 cn(pca1.comp[0]).sort_values(0)
 
-pca0.comp.shape
-pca1.comp.shape
 
 
 
