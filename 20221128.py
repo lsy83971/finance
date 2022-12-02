@@ -204,10 +204,6 @@ def corr2(df1, df2):
 
     
 
-sb = ret_ts(close_df)
-alpha = 0.1
-
-
 stock_files = os.listdir("./kdata60")
 opens = [pd.read_pickle(f"./kdata60/{i}")["open"] for i in stock_files]
 open_df = pd.concat(opens, axis=1)
@@ -221,9 +217,8 @@ close_df.columns = [i[: -4] for i in stock_files]
 
  
 # 1. 对比PCA hs300-fit/total-fit 得到主特征的有效性
-
+check_price(close_df)
 sp = price_ts(close_df)
-#sp = price_ts(close_df.iloc[:, :])
 ret = sp.ret()
 
 
@@ -236,11 +231,10 @@ for i, j in ret.gp1l("year", [4, 1]):
     print(np.diag(corr2(pca0.trans(df1), pca1.trans(df1))))
     pca0.trans(df1).corr()
 
-
-
-
 sb = pca0.trans(df0)
 coef = (df0.T@sb / np.diag(sb.T@sb))
+
+
 
 
 i = 4
