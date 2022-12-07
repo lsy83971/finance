@@ -5,5 +5,25 @@ pacf=smt.stattools.pacf(df, nlags=5)
 type(acf)
 type(pacf)
 
-acf
-pacf
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

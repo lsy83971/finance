@@ -1,6 +1,8 @@
+# -*- coding: utf-8 -*-
 import pandas as pd
 import baostock as bs
 from datetime import datetime, timedelta
+import sys
 
 _is_login = False
 
@@ -106,55 +108,3 @@ def get_k_info(info, begin_date="2013-01-01", date_end=None, freq='60', columns=
                 df[i].fillna(method="ffill", inplace=True)
                 
         df.to_pickle(f"c:/Users/48944/finance/{path}/{code}.pkl")
-
-if __name__ == "__main__":
-    #stocks_basic_info = get_stock_basic(2010, 2022)
-    #stocks_basic_info.to_pickle("./stockdata/stocks_basic_info.pkl")
-    
-    stocks_basic_info = pd.read_pickle("./stockdata/stocks_basic_info.pkl")
-    stocks_basic_info_gp = stocks_basic_info[stocks_basic_info["type"] == "1"]
-    stocks_basic_info_zs = stocks_basic_info[stocks_basic_info["type"] == "2"]
-    gp_on = stocks_basic_info_gp[stocks_basic_info_gp["outDate"] == ""]
-    his = [i[: -4] for i in os.listdir("./kdata60")]
-    gp_on1 = gp_on[~gp_on["code"]. isin(his)]
-    #gp_on1 = gp_on
-    get_k_info(gp_on1, begin_date="2013-01-01", date_end="2022-11-23", freq='60')
-
-    zs_on = stocks_basic_info_zs[stocks_basic_info_zs["outDate"] == ""]
-    his = [i[: -4] for i in os.listdir("./kdata60zs")]
-    zs_on1 = zs_on[~zs_on["code"]. isin(his)]
-    get_k_info(zs_on1, begin_date="2013-01-01", date_end="2022-11-23", freq='d', path="kdata60zs")
-
-
-#从这些指数中选择可以的
-
-## 一定程度受市场环境影响
-## 同时还具有个性化趋势
-
-
-## 两者以何种方式叠加
-## 这个问题可以研究下
-## 股民/机构/国家队 等等这些都是市场参与者
-
-## 以投资方式而言 可以以理性投资者 投机者 来区分这些参与者
-## 从投资时长来看 可以分为长期投资者 短期投资者
-
-## 这些对于市场会有多大影响？？？
-
-## 参与者机构
-## 参与者散户
-## 参与者长期投资？？？
-
-## 市场给予的一个波动
-## 自身利好给予的一个波动
-## 竞价上会得到体现？？？
-
-## 卖方压力
-
-
-
-
-
-
-
-

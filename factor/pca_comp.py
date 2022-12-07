@@ -4,7 +4,7 @@ from tools.factory import pro_factory
 from tools.preprocess import *
 from sta.pca import cls_pca
 
-class pca_factory:
+class pca_comp:
     def __init__(self, rt, _comp=None):
         self.rt = rt
         self._comp = _comp
@@ -21,7 +21,6 @@ class pca_factory:
             j0_on = j[0]. df_on()
             j1_on = j[1]. df_on()            
             if _comp is not None:
-                print(_comp)
                 c1 = _comp.get(j[0]. info.index[0])["code"]
                 c2 = _comp.get(j[0]. info.index[ - 1])["code"]
                 j0_on = j0_on[j0_on.columns.intersection(c1).intersection(c2)]
