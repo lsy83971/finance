@@ -26,7 +26,7 @@ class mad(clip):
         self.lower = med - dif_med * n
 
 class sigma3(clip):
-    @_t_clip    
+    @_t_clip
     def fit(self, x, n=3):
         mean = x.mean()
         std = x.std()
@@ -34,7 +34,7 @@ class sigma3(clip):
         self.lower = mean - n * std
 
 class percentile(clip):
-    @_t_clip        
+    @_t_clip
     def percentile(x, min= 0.025, max= 0.975):
         q = x.quantile([min, max])
         self.upper = q[ - 1]

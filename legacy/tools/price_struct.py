@@ -10,6 +10,11 @@ basic_info = pd.read_pickle("c:/Users/48944/finance/stockdata/stocks_basic_info.
 cn_name = basic_info.set_index("code")["code_name"]
 
 class comp:
+    """
+    Example:
+    sz50 = comp(pd.read_pickle("c:/Users/48944/finance/compdata/sz50.pkl"))
+    sz50.get(20211001)
+    """
     def __init__(self, info):
         self.info = info
         self.dt = pd.Series(self.info.keys())
@@ -22,20 +27,6 @@ class comp:
         if len(tmp) <= 0:
             raise
         return self.info[tmp.max()]
-
-class decomp_y:
-    def __init__(self, alpha, y, x):
-        self.ls = Lasso(alpha=alpha, fit_intercept=False)
-        self.y = y
-        self.x = x
-        self.ls.fit(x, y)
-
-        self.coef = pd.Series(self.ls.coef_, index=x.columns)
-        self.coef1 = self.coef[~(self.coef == 0)]
-
-        self.r1 = self.x@self.coef
-        self.r2 = self.y - self.r1
-        self.dcp_r = (self.r1 ** 2).sum() / (self.y ** 2).sum()
 
 def shift_ret(s):
     return s[1:]. values / s[: -1]. values- 1
@@ -134,6 +125,18 @@ class ret_ts(df_ts):
     pass
     
 class price_ts(df_ts):
+    """
+    Example:
+    stock_files = os.listdir("c:/Users/48944/finance/kdata60")
+    infos = [pd.read_pickle(f"../kdata60/{i}") for i in stock_files]
+    close_df = pd.concat([i["close"] for i in infos], axis=1)
+    check_price(close_df)
+    sp = price_ts(close_df)
+
+    usage:
+    end:spd = sp.end(["year", "month", "day"])
+    ret:rtd = spd.ret()
+    """
     def ret(self):
         _log = self.info.applymap(lambda x:math.log(x))
         self.ret_info = ret_ts((_log - _log.shift(1)).iloc[1:])
@@ -179,6 +182,12 @@ def iter_concat(g, lag=1):
             yield s0[i],_tmp
     
 def check_price(df):
+    """
+    Example:
+    check_price(close_df)
+    if price=0 then replace it with the price of last day.
+    """
+    
     mask = df.isnull()
     iszero = (df <= 0).sum()
     iszero_s = iszero[iszero > 0]

@@ -1,8 +1,10 @@
 import sys
 import os
 sys.path.append("c:/Users/48944/finance/")
+sys.path.append("c:/Users/48944/finance/tools")
 from tools.price_struct import *
 from factor.pca_comp import pca_comp
+import pd_tools
 
 
 stock_files = os.listdir("c:/Users/48944/finance/kdata60")
@@ -27,6 +29,8 @@ hs300 = comp(pd.read_pickle("c:/Users/48944/finance/compdata/hs300.pkl"))
 sz50 = comp(pd.read_pickle("c:/Users/48944/finance/compdata/sz50.pkl"))
 zz500 = comp(pd.read_pickle("c:/Users/48944/finance/compdata/zz500.pkl"))
 
+os.chdir("c:/Users/48944/finance/daily_analysis/")
+
 i1 = 3
 i2 = 1
 pf300 = pca_comp(rtd, hs300)
@@ -38,7 +42,9 @@ pf500.yearly(i1, i2)
 pf50.yearly(i1, i2)
 pf_total.yearly(i1, i2)
 
-pf_total.idx0_record[2013]
+
+pf_total.idx0_record.keys()
+pf_total.idx1_record.keys()
 
 
 
@@ -70,8 +76,33 @@ train_ts = factor_mkt_df.index.intersection(factor_stockd.index).intersection(ta
 valid_ts = factor_mkt_df_valid.index.intersection(factor_stockd.index).intersection(target_stockd.index)
 
 
+sb = train_factor_stockd.mean(axis=1)
+g1 = (sb * train_factor_stockd.T).sum(axis=1)
+g2 = ((sb ** 2).sum()*(sb ** 2).sum())**(1 / 2)
+#g2 = ((sb ** 2).sum()*(train_factor_stockd ** 2).sum())**(1 / 2)
+
+g3 = g1 / g2
+g3.quantile([i / 10 for i in range(11)])
+
+
+train_target_stockd
 
 train_factor_stockd = factor_stockd.loc[train_ts]
+
+mean_ret = train_factor_stockd.mean(axis=1)
+beta = (sb * train_factor_stockd.T).sum(axis=1) / (sb ** 2).sum()
+alpha = train_factor_stockd - mean_ret.values[:, None] * beta.values[None, :]
+
+g1 = (alpha.shift(1)[1:] * alpha[1:]).sum(axis=1)
+g2 =((alpha.shift(1)[1:] ** 2).sum(axis=1)*(alpha[1:] ** 2).sum(axis=1))**(1 / 2)
+
+cor = (g1 / g2)
+cor.quantile([i / 10 for i in range(11)])
+
+
+
+
+
 train_target_stockd = target_stockd.loc[train_ts]
 train_factor_mkt_df = factor_mkt_df.loc[train_ts]
 
@@ -93,115 +124,48 @@ train_factor_stockd_valid = (train_factor_stockd_valid.T - train_factor_stockd_v
 train_target_stockd_valid = (train_target_stockd_valid.T - train_target_stockd_valid.mean(axis=1)).T
 
 
-g12 = (train_factor_stockd * train_target_stockd).sum(axis=1)
-g11 = (train_factor_stockd * train_factor_stockd).sum(axis=1)
-g22 = (train_target_stockd * train_target_stockd).sum(axis=1)
 
-g12_valid = (train_factor_stockd_valid * train_target_stockd_valid).sum(axis=1)
-g11_valid = (train_factor_stockd_valid * train_factor_stockd_valid).sum(axis=1)
-g22_valid = (train_target_stockd_valid * train_target_stockd_valid).sum(axis=1)
+sb = (train_factor_stockd * train_target_stockd).sum(axis=1) / ((train_factor_stockd ** 2).sum(axis=1)*(train_target_stockd ** 2).sum(axis=1))**(1 / 2)
+sb.quantile([i / 10 for i in range(11)])
 
-
-corr_ts = g12 / (g11 * g22)**(1 / 2)
-corr_ts_valid = g12_valid / (g11_valid * g22_valid)**(1 / 2)
-#corr_ts.quantile([i / 10 for i in range(11)])
-
-
-
-import lightgbm as lgb
+import numpy as np
+x = np.zeros([train_factor_stockd.shape[0] * train_factor_stockd.shape[1], train_factor_mkt_df.shape[1]])
+for i in range(12):
+    i1 = np.zeros_like(train_target_stockd)
+    i1.T[:, :] = train_factor_mkt_df.iloc[:, i]
+    x[:, i] = i1.flatten()
+x = pd.DataFrame(x)
+param = pd.DataFrame(train_factor_stockd.values.flatten())
+param1 = (param - param.mean()) / param.std()
+y = pd.Series(train_target_stockd.values.flatten()) > 0
 
 
-x = factor_mkt_df
-y = corr_ts
-
-tt_cut = int(x.shape[0] * 0.6)
-tt_id1 = x.index[:tt_cut]
-tt_id2 = x.index[tt_cut:]
+gdt = _gd_t(min_cnt=100000, trace=5000, max_depth=3, max_nodes=8)
+gdt.data(param1, x, y)
+y1 = gdt.y1
 
 
-x1 = x.loc[tt_id1]
-y1 = y.loc[tt_id1]
+learning_rate = 0.1
+lvs_cluster = list()
+        
+for i in range(10):
+    gn1 = _gd_node(gdt)
+    gn1.rec_split()
+    self = gdt
+    mask = gn.leaves[0]. mask
+    a, b=gdt.calc_gd(gn.leaves[0]. mask)
 
-x2 = x.loc[tt_id2]
-y2 = y.loc[tt_id2]
+    
+    gn.calc_t_gd()
+    gn1.calc_t_gd()    
 
-
-
-lgbs1 = lgb.Dataset(x1, y1 > 0)
-lgbs2 = lgb.Dataset(x2, y2 > 0)
-
-
-
-params = {
-            'boosting_type': 'gbdt',
-            'boosting': 'dart',
-            'objective': 'binary',
-            'metric': 'auc',
- 
-            'learning_rate': 0.01,
-            'num_leaves':25,
-            'max_depth':3,
- 
-            'max_bin':10,
-            'min_data_in_leaf':8,
- 
-            'feature_fraction': 0.6,
-            'bagging_fraction': 1,
-            'bagging_freq':0,
- 
-            'lambda_l1': 0,
-            'lambda_l2': 0,
-            'min_split_gain': 0
-}
-
-gbm = lgb.train(params,                     # 参数字典
-                lgbs1,                      # 训练集
-                num_boost_round=300,        # 迭代次数
-                valid_sets=lgbs2,           # 验证集
-                early_stopping_rounds=20)   # 早停系数
-
-score = gbm.predict(gbm, valid_factor_mkt_df.best_iteration)
-score = pd.Series(score, index=valid_factor_mkt_df.index)
-from sklearn.metrics import roc_auc_score
-
-roc_auc_score((corr_ts_valid > 0), score)
-pd.Series(gbm.feature_importance(), index=x1.columns).sort_values()
-pd.concat([corr_ts_valid, score], axis=1).corr()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    lvs = plgd_sta_leaves(gn.leaves)
+    lvs_cluster.append(lvs)
+    y1 += gn.gd_t_param * learning_rate
+    y1.gd(y)
+    print(i)    
+    print(roc_auc_score(y, y1))
+    print(roc_auc_score(y, y1))
 
 
 

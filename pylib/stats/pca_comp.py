@@ -1,8 +1,7 @@
 import sys
-sys.path.append("c:/Users/48944/finance/")
-from tools.factory import pro_factory
-from tools.preprocess import *
-from sta.pca import cls_pca
+sys.path.append("c:/Users/48944/finance/pylib")
+from prep.factory import pro_factory, sigma3, std
+from stats.pca import cls_pca
 
 class pca_comp:
     def __init__(self, rt, _comp=None):
