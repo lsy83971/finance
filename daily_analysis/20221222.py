@@ -7,7 +7,6 @@ from tools.price_struct import *
 from factor.pca_comp import pca_comp
 import pd_tools
 
-
 stock_files = os.listdir("c:/Users/48944/finance/kdata60")
 infos = [pd.read_pickle(f"../kdata60/{i}") for i in stock_files]
 close_df = pd.concat([i["close"] for i in infos], axis=1)
@@ -15,8 +14,6 @@ close_df.columns = [i[: -4] for i in stock_files]
 
 amount_df = pd.concat([i["amount"] for i in infos], axis=1)
 amount_df.columns = [i[: -4] for i in stock_files]
-
-
 
 # 1. 对比PCA hs300-fit/total-fit 得到主特征的有效性
 check_price(close_df)
@@ -123,7 +120,6 @@ for i in range(10):
     y1.gd(y)
     print(roc_auc_score(y, y1))
 
-
 x_valid = np.zeros([valid_ts.shape[0] * alpha.shape[1], valid_factor_mkt_df.shape[1]])
 for i in range(12):
     i1 = np.zeros([valid_ts.shape[0], alpha.shape[1]])
@@ -136,8 +132,6 @@ param_valid = pd.DataFrame({i: j.loc[valid_ts]. values.flatten() for i, j in t_m
 param1_valid = st_train.trans(param_valid).iloc[:, :1]
 param1_valid = st_train.trans(param_valid)
 y_valid = pd.Series(alpha.loc[valid_ts].values.flatten()) > 0
-
-
 
 
 

@@ -38,6 +38,38 @@ def get_annual_stocks(y1, y2):
     return res
 
 
+
+
+@login_logout
+def get_finance_data(code, y1=2010, y2=2022):
+    l2 = list()
+    for year in range(y1 + 1, y2 + 1):
+        for q in range(1, 5):
+            l = list()
+            l.append(bs.query_dupont_data(code=code, year=year, quarter=q).get_data())
+            l.append(bs.query_profit_data(code=code, year=year, quarter=q).get_data())
+            l.append(bs.query_operation_data(code=code, year=year, quarter=q).get_data())
+            l.append(bs.query_growth_data(code=code, year=year, quarter=q).get_data())
+            l.append(bs.query_balance_data(code=code, year=year, quarter=q).get_data())
+            l.append(bs.query_cash_flow_data(code=code, year=year, quarter=q).get_data())
+            l = [i for i in l if i.shape[0] > 0]
+            if len(l) > 0:
+                l_repeat = list()
+                for j, i in enumerate(l):
+                    if j > 0:
+                        l_repeat.append(i.drop(["statDate", "pubDate", "code"], axis=1))
+                    else:
+                        l_repeat.append(i)
+                l1 = pd.concat(l_repeat, axis=1)
+                if l1.shape[0] > 0:
+                    l2.append(l1)
+    l3 = pd.concat(l2).reset_index(drop="True")
+    
+    return l3
+
+
+# bs.query_performance_express_report("sh.600000", start_date="2015-01-01", end_date="2017-12-31")
+
 @login_logout
 def get_stock_basic(y1, y2):
     stocks = get_annual_stocks(y1, y2)
@@ -107,3 +139,6 @@ def get_k_info(info, begin_date="2013-01-01", date_end=None, freq='60', columns=
                 df[i].fillna(method="ffill", inplace=True)
                 
         df.to_pickle(f"c:/Users/48944/finance/{path}/{code}.pkl")
+
+
+

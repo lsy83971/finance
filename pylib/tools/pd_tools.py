@@ -1,8 +1,13 @@
 import pandas as pd
 def c1(self, word: str):
-    self.columns = word + pd.Series(self.columns).astype(str)
-    return self
+    df = self.copy()
+    df.columns = word + pd.Series(self.columns).astype(str)
+    return df
 pd.DataFrame.c1 = c1
+
+def cc(self, word: str):
+    return self.loc[self.str.contains(word)]
+pd.Series.cc = cc
 
 
 def shift1(self, i):
@@ -110,4 +115,6 @@ class pds(pd.DataFrame):
     def fillna1(self, i):
         return pds(self.fillna(i), name=self.name)
 
+    def clip1(self, i, j):
+        return pds(self.clip(i, j), name=self.name)
 

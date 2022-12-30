@@ -37,10 +37,14 @@ def _ts_info(s):
     s1 = s.astype(str)
     s1 = s1.replace("-", "")
     if len(s1.iloc[0]) == 8:
-       s1 = s1 + "0"
-       s = s1.astype(int)
-    s2 = pd.concat([pd.to_datetime(s1.str[:8]), s1.str[8]. astype(int), s], axis = 1)
-    s2.columns = ["time", "hour", "raw"]
+        s = s1.astype(int)
+        s2 = pd.concat([pd.to_datetime(s1.str[:8]), s], axis = 1)
+        s2.columns = ["time", "raw"]
+    else:
+        s = s1.astype(int)        
+        s2 = pd.concat([pd.to_datetime(s1.str[:8]), s1.str[8]. astype(int), s], axis = 1)
+        s2.columns = ["time", "hour", "raw"]
+        
     s2.index = s
     s2["year"] = s2["time"]. dt.year
     s2["month"] = s2["time"]. dt.month
@@ -119,6 +123,11 @@ class df_ts:
         
     def begin(self, l="year"):
         return self.sub(ts=self.ts.begin(l=l).info["raw"])
+
+    def index_cut(self, n=8):
+        self.ts.info.index = self.ts.info.index.astype(str).str[:n]. astype(int)
+        self.ts.info["raw"] = self.ts.info["raw"].astype(str).str[:n]. astype(int)
+        self.info.index = self.info.index.astype(str).str[:n]. astype(int)
 
 
 class ret_ts(df_ts):
